@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dussehra Scratch Coupon – Ably</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffcc80, #ff9800, #ff5722, #ff4081, #7c4dff);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease infinite;
+      overflow-x: hidden;
+      color: white;
+    }
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 152, 0, 0.9);
+      color: white;
+      font-size: 1.5em;
+      font-weight: bold;
+      position: relative;
+      z-index: 2;
+      border-bottom: 3px solid #fff;
+    }
+    .garland {
+      text-align: center;
+      margin-top: -10px;
+      position: relative;
+      z-index: 2;
+      font-size: 1.2em;
+    }
+    .scratch-card {
+      margin: 20px auto;
+      width: 300px;
+      height: 200px;
+      position: relative;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      z-index: 2;
+      background: white;
+    }
+    #reward {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: green;
+      background: linear-gradient(to bottom right, #fff8e1, #ffe0b2);
+    }
+    canvas#scratch {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+    }
+    .controls {
+      text-align: center;
+      margin-top: 15px;
+      position: relative;
+      z-index: 2;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 25px;
+      background: #ff9800;
+      color: white;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover:enabled {
+      background: #e68900;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .coupon {
+      text-align: center;
+      margin: 20px auto;
+      padding: 15px;
+      max-width: 320px;
+      border-radius: 15px;
+      background: #e8f5e9;
+      border: 2px solid #4caf50;
+      display: none;
+      color: black;
+      position: relative;
+      z-index: 2;
+    }
+    .coupon-code {
+      font-family: monospace;
+      font-size: 1.2em;
+      color: #2e7d32;
+      margin-top: 8px;
+      word-break: break-all;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9em;
+      color: #fff;
+      position: relative;
+      z-index: 2;
+    }
+    .rangoli {
+      text-align: center;
+      font-size: 2em;
+      margin: 10px 0;
+    }
+    #fireworks {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworks"></canvas>
+
+  <header>🎉 Ably – Dussehra Special Scratch Coupon 🎉</header>
+  <div class="garland">🌸🌼🌸🌼🌸🌼🌸🌼🌸🌼</div>
+
+  <div class="scratch-card">
+    <div id="reward">🎁 Scratch to Reveal 🎁</div>
+    <canvas id="scratch"></canvas>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn">Start Scratch</button>
+    <button id="claimBtn" disabled>Claim Reward</button>
+  </div>
+
+  <div class="coupon" id="couponBox">
+    <div><strong>Your Coupon Code:</strong></div>
+    <div class="coupon-code" id="couponCode"></div>
+    <div id="qrcode" style="margin-top:10px;"></div>
+    <div style="margin-top:8px;font-size:0.8em;color:#333;">
+      Code copied! Show this at Ably to redeem.<br/>Valid for 7 days.
+    </div>
+  </div>
+
+  <div class="rangoli">🎨 🌸 🌀 🌼 🌀 🌸 🎨</div>
+
+  <footer>✨ Happy Dussehra from Ably ✨</footer>
+
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    const rewardPool = [50,50,50,100,100,100,150,150,150,200]; 
+    let currentReward = null;
+    let revealed = false;
+    let used = false;
+    let claimed = false;
+
+    const canvas = document.getElementById('scratch');
+    const ctx = canvas.getContext('2d');
+    const rewardDiv = document.getElementById('reward');
+    const startBtn = document.getElementById('startBtn');
+    const claimBtn = document.getElementById('claimBtn');
+    const couponBox = document.getElementById('couponBox');
+    const couponCode = document.getElementById('couponCode');
+
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function startScratch() {
+      if (used) {
+        alert("❌ Aapne ek baar scratch kar liya hai!");
+        return;
+      }
+      used = true;
+      startBtn.disabled = true;
+
+      currentReward = rewardPool[Math.floor(Math.random() * rewardPool.length)];
+      rewardDiv.innerHTML = `<div style='color:#444;font-size:0.8em;'>🎁 Your Reward 🎁</div><div style='font-size:2.5em;color:green;font-weight:bold;'>₹${currentReward}</div>`;
+      revealed = false;
+      claimBtn.disabled = true;
+      couponBox.style.display = 'none';
+      claimed = false;
+
+      ctx.globalCompositeOperation = 'source-over';
+      const grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+      grad.addColorStop(0,'#f7e7a1');
+      grad.addColorStop(1,'#b8860b');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText('Scratch Here!', canvas.width/2-50, canvas.height/2);
+    }
+
+    function scratch(x,y) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, Math.PI*2);
+      ctx.fill();
+      checkReveal();
+    }
+
+    function checkReveal() {
+      const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      let transparent = 0;
+      for (let i=3; i<pixels.length; i+=4) {
+        if (pixels[i]===0) transparent++;
+      }
+      const percent = transparent / (canvas.width*canvas.height) * 100;
+      if (percent > 50 && !revealed) {
+        revealed = true;
+        claimBtn.disabled = false;
+      }
+    }
+
+    function makeCouponCode(amount) {
+      const part = Math.random().toString(36).substr(2,4).toUpperCase();
+      const ts = Date.now().toString(36).toUpperCase().slice(-4);
+      return `ABLY-${amount}-${part}-${ts}`;
+    }
+
+    function claimReward() {
+      if (!revealed || claimed) return;
+      claimed = true;
+      const code = makeCouponCode(currentReward);
+      couponCode.textContent = code;
+      couponBox.style.display = 'block';
+      navigator.clipboard.writeText(code).catch(()=>{});
+      alert("Coupon Code Copied: " + code);
+      claimBtn.disabled = true;
+
+      // Generate QR for custom URL
+      const myCustomURL = "https://set367-code.github.io/dussehra-coupon/";
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: myCustomURL,
+        width: 160,
+        height: 160,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    // scratch events
+    let isDown = false;
+    canvas.addEventListener('mousedown', e => { isDown = true; scratch(e.offsetX,e.offsetY); });
+    canvas.addEventListener('mousemove', e => { if(isDown) scratch(e.offsetX,e.offsetY); });
+    window.addEventListener('mouseup', ()=> isDown=false);
+
+    canvas.addEventListener('touchstart', e => { 
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      scratch(e.touches[0].clientX-rect.left, e.touches[0].clientY-rect.top); 
+    },{passive:false});
+    canvas.addEventListener('touchmove', e => { 
+      e.preventDefault();
+      if (!e.touches.length) return;
+      const rect = canvas.getBoundingClientRect();
+      scratch(e.touches[0].clientX-rect.left, e.touches[0].clientY-rect.top); 
+    },{passive:false});
+
+    startBtn.addEventListener('click', startScratch);
+    claimBtn.addEventListener('click', claimReward);
+
+    // Fireworks animation
+    const fwCanvas = document.getElementById('fireworks');
+    const fwCtx = fwCanvas.getContext('2d');
+    let fwParticles = [];
+    function resizeFw() {
+      fwCanvas.width = window.innerWidth;
+      fwCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeFw);
+    resizeFw();
+
+    function Firework(x,y,color) {
+      this.x = x;
+      this.y = y;
+      this.color = color;
+      this.radius = 2;
+      this.alpha = 1;
+      this.vx = (Math.random()-0.5)*6;
+      this.vy = (Math.random()-0.5)*6;
+    }
+    Firework.prototype.update = function() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= 0.02;
+    };
+    Firework.prototype.draw = function() {
+      fwCtx.beginPath();
+      fwCtx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+      fwCtx.fillStyle = this.color;
+      fwCtx.globalAlpha = this.alpha;
+      fwCtx.fill();
+      fwCtx.globalAlpha = 1;
+    };
+
+    function animateFw() {
+      requestAnimationFrame(animateFw);
+      fwCtx.fillStyle = "rgba(0,0,0,0.2)";
+      fwCtx.fillRect(0,0,fwCanvas.width,fwCanvas.height);
+      fwParticles.forEach((p,i)=>{
+        p.update();
+        p.draw();
+        if(p.alpha<=0) fwParticles.splice(i,1);
+      });
+    }
+    animateFw();
+
+    setInterval(()=>{
+      const x = Math.random()*fwCanvas.width;
+      const y = Math.random()*fwCanvas.height/2;
+      const colors = ["red","yellow","orange","lime","cyan","magenta"];
+      for(let i=0;i<30;i++){
+        fwParticles.push(new Firework(x,y,colors[Math.floor(Math.random()*colors.length)]));
+      }
+    },800);
+  </script>
+</body>
+</html>
