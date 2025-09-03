@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+https://ricoset367-code.github.io/ABLY/<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -153,7 +153,6 @@
   <div class="coupon" id="couponBox">
     <div><strong>Your Coupon Code:</strong></div>
     <div class="coupon-code" id="couponCode"></div>
-    <div id="qrcode" style="margin-top:10px;"></div>
     <div style="margin-top:8px;font-size:0.8em;color:#333;">
       Code copied! Show this at Ably to redeem.<br/>Valid for 7 days.
     </div>
@@ -162,9 +161,6 @@
   <div class="rangoli">🎨 🌸 🌀 🌼 🌀 🌸 🎨</div>
 
   <footer>✨ Happy Dussehra from Ably ✨</footer>
-
-  <!-- QR Code Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script>
     const rewardPool = [50,50,50,100,100,100,150,150,150,200]; 
@@ -250,16 +246,6 @@
       navigator.clipboard.writeText(code).catch(()=>{});
       alert("Coupon Code Copied: " + code);
       claimBtn.disabled = true;
-
-      // Generate QR for custom URL
-      const myCustomURL = "https://set367-code.github.io/dussehra-coupon/";
-      document.getElementById("qrcode").innerHTML = "";
-      new QRCode(document.getElementById("qrcode"), {
-        text: myCustomURL,
-        width: 160,
-        height: 160,
-        correctLevel: QRCode.CorrectLevel.H
-      });
     }
 
     // scratch events
